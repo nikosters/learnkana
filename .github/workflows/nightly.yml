@@ -1,0 +1,52 @@
+name: Nightly
+
+on:
+  push:
+    branches:
+      - develop
+  schedule:
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  nightly:
+    name: nightly
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Test
+        run: flutter test
+
+      - name: Build nightly APK
+        run: flutter build apk --debug
+
+      - name: Prepare asset
+        run: |
+          cp build/app/outputs/flutter-apk/app-debug.apk learnkana-nightly.apk
+          git tag -f nightly "$GITHUB_SHA"
+          git push origin nightly --force
+
+      - name: Publish nightly release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nightly
+          name: Nightly
+          prerelease: true
+          overwrite_files: true
+          files: learnkana-nightly.apk
+          make_latest: false
