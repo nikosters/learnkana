@@ -1,0 +1,27 @@
+name: Feature request
+description: Suggest a focused improvement for LearnKana.
+title: "Feature: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Learning workflow
+      description: What learning workflow would this improve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What should change?
+    validations:
+      required: true
+  - type: textarea
+    id: local
+    attributes:
+      label: Local-only impact
+      description: Does this preserve the app's local-only behavior?
+    validations:
+      required: true
