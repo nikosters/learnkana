@@ -23,6 +23,7 @@ class SettingsController extends ChangeNotifier {
     final snapshot = await _storage.read();
     if (snapshot == null) {
       _state = _defaultState(_repository);
+      notifyListeners();
       return;
     }
 
@@ -31,6 +32,7 @@ class SettingsController extends ChangeNotifier {
       _state = _defaultState(_repository);
       await _save();
     }
+    notifyListeners();
   }
 
   Future<void> setHiraganaEnabled(bool enabled) async {
@@ -76,6 +78,12 @@ class SettingsController extends ChangeNotifier {
     );
   }
 
+  Future<void> setThemeMode(AppThemeMode themeMode) async {
+    _state = _state.copyWith(themeMode: themeMode);
+    notifyListeners();
+    await _save();
+  }
+
   bool isEntryEnabled(KanaEntry entry) {
     return _state.enabledEntryIds.contains(entry.id);
   }
@@ -103,6 +111,7 @@ class SettingsController extends ChangeNotifier {
       katakanaEnabled: katakanaEnabled,
       yoonEnabled: yoonEnabled,
       disabledEntryIds: disabledEntryIds,
+      themeMode: _state.themeMode,
     );
     notifyListeners();
     await _save();
@@ -115,6 +124,7 @@ class SettingsController extends ChangeNotifier {
         katakanaEnabled: _state.katakanaEnabled,
         yoonEnabled: _state.yoonEnabled,
         disabledEntryIds: _state.disabledEntryIds,
+        themeMode: _state.themeMode,
       ),
     );
   }
@@ -133,6 +143,7 @@ class SettingsController extends ChangeNotifier {
       katakanaEnabled: snapshot.katakanaEnabled,
       yoonEnabled: snapshot.yoonEnabled,
       disabledEntryIds: snapshot.disabledEntryIds,
+      themeMode: snapshot.themeMode,
     );
   }
 
@@ -150,6 +161,7 @@ class SettingsController extends ChangeNotifier {
       katakanaEnabled: true,
       yoonEnabled: false,
       disabledEntryIds: const {},
+      themeMode: AppThemeMode.system,
     );
   }
 }

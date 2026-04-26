@@ -32,6 +32,7 @@ void main() {
         katakanaEnabled: false,
         yoonEnabled: false,
         disabledEntryIds: {'hiragana.basic.a'},
+        themeMode: AppThemeMode.system,
       ),
     );
     final controller = SettingsController(
@@ -79,6 +80,7 @@ void main() {
         katakanaEnabled: false,
         yoonEnabled: false,
         disabledEntryIds: {},
+        themeMode: AppThemeMode.system,
       ),
     );
     final controller = SettingsController(
@@ -91,6 +93,57 @@ void main() {
     expect(controller.state.hiraganaEnabled, isTrue);
     expect(controller.state.katakanaEnabled, isTrue);
     expect(controller.state.enabledEntryIds, isNotEmpty);
+  });
+
+  test('defaults to system theme mode', () async {
+    final controller = SettingsController(
+      repository: repository,
+      storage: _MemorySettingsStorage(),
+    );
+
+    await controller.load();
+
+    expect(controller.state.themeMode, AppThemeMode.system);
+  });
+
+  test('loads stored dark theme mode', () async {
+    final controller = SettingsController(
+      repository: repository,
+      storage: _MemorySettingsStorage(
+        const SettingsSnapshot(
+          hiraganaEnabled: true,
+          katakanaEnabled: true,
+          yoonEnabled: false,
+          disabledEntryIds: {},
+          themeMode: AppThemeMode.dark,
+        ),
+      ),
+    );
+
+    await controller.load();
+
+    expect(controller.state.themeMode, AppThemeMode.dark);
+  });
+
+  test('updates theme mode without changing kana settings', () async {
+    final storage = _MemorySettingsStorage();
+    final controller = SettingsController(
+      repository: repository,
+      storage: storage,
+    );
+
+    await controller.load();
+    await controller.setKatakanaEnabled(false);
+    final before = controller.state;
+
+    await controller.setThemeMode(AppThemeMode.light);
+
+    expect(controller.state.themeMode, AppThemeMode.light);
+    expect(storage.snapshot?.themeMode, AppThemeMode.light);
+    expect(controller.state.hiraganaEnabled, before.hiraganaEnabled);
+    expect(controller.state.katakanaEnabled, before.katakanaEnabled);
+    expect(controller.state.yoonEnabled, before.yoonEnabled);
+    expect(controller.state.disabledEntryIds, before.disabledEntryIds);
   });
 }
 

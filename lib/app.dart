@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'data/kana_repository.dart';
 import 'quiz/quiz_controller.dart';
 import 'settings/settings_controller.dart';
+import 'settings/settings_state.dart';
 import 'storage/settings_storage.dart';
 import 'ui/quiz_page.dart';
 
@@ -49,30 +50,52 @@ class _LearnKanaAppState extends State<LearnKanaApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xff0f766e),
-          brightness: Brightness.light,
-        ),
-        scaffoldBackgroundColor: const Color(0xfffcfcfc),
-        useMaterial3: true,
-      ),
-      home: FutureBuilder<void>(
-        future: _loadSettings,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Scaffold(body: SizedBox.expand());
-          }
+    return AnimatedBuilder(
+      animation: _settingsController,
+      builder: (context, _) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          themeMode: _themeModeFor(_settingsController.state.themeMode),
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xff0f766e),
+              brightness: Brightness.light,
+            ),
+            scaffoldBackgroundColor: const Color(0xfffcfcfc),
+            useMaterial3: true,
+          ),
+          darkTheme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xff0f766e),
+              brightness: Brightness.dark,
+            ),
+            scaffoldBackgroundColor: const Color(0xff101413),
+            useMaterial3: true,
+          ),
+          home: FutureBuilder<void>(
+            future: _loadSettings,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const Scaffold(body: SizedBox.expand());
+              }
 
-          return QuizPage(
-            quizController: _quizController,
-            settingsController: _settingsController,
-            repository: _repository,
-          );
-        },
-      ),
+              return QuizPage(
+                quizController: _quizController,
+                settingsController: _settingsController,
+                repository: _repository,
+              );
+            },
+          ),
+        );
+      },
     );
+  }
+
+  ThemeMode _themeModeFor(AppThemeMode themeMode) {
+    return switch (themeMode) {
+      AppThemeMode.system => ThemeMode.system,
+      AppThemeMode.light => ThemeMode.light,
+      AppThemeMode.dark => ThemeMode.dark,
+    };
   }
 }

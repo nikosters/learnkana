@@ -24,6 +24,7 @@ class QuizPage extends StatefulWidget {
 class _QuizPageState extends State<QuizPage> {
   final TextEditingController _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  String? _revealedEntryId;
 
   @override
   void initState() {
@@ -32,6 +33,13 @@ class _QuizPageState extends State<QuizPage> {
   }
 
   void _syncInput() {
+    final currentEntryId = widget.quizController.state.currentEntry.id;
+    if (_revealedEntryId != null && _revealedEntryId != currentEntryId) {
+      setState(() {
+        _revealedEntryId = null;
+      });
+    }
+
     final input = widget.quizController.state.input;
     if (_textController.text == input) {
       return;
@@ -87,16 +95,41 @@ class _QuizPageState extends State<QuizPage> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          state.currentEntry.kana,
-                          key: const Key('kanaGlyph'),
-                          style: const TextStyle(
-                            fontSize: 96,
-                            height: 1,
-                            fontWeight: FontWeight.w400,
+                        InkResponse(
+                          onTap: () {
+                            setState(() {
+                              _revealedEntryId =
+                                  _revealedEntryId == state.currentEntry.id
+                                  ? null
+                                  : state.currentEntry.id;
+                            });
+                          },
+                          child: Text(
+                            state.currentEntry.kana,
+                            key: const Key('kanaGlyph'),
+                            style: const TextStyle(
+                              fontSize: 96,
+                              height: 1,
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 28),
+                        SizedBox(
+                          height: 28,
+                          child: Center(
+                            child: Text(
+                              _revealedEntryId == state.currentEntry.id
+                                  ? state.currentEntry.romaji
+                                  : '',
+                              key: const Key('kanaRomajiHint'),
+                              style: TextStyle(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ),
                         TextField(
                           key: const Key('romajiInput'),
                           controller: _textController,

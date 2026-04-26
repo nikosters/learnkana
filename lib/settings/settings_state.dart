@@ -1,3 +1,5 @@
+enum AppThemeMode { system, light, dark }
+
 class SettingsState {
   const SettingsState({
     required this.enabledEntryIds,
@@ -5,6 +7,7 @@ class SettingsState {
     required this.katakanaEnabled,
     required this.yoonEnabled,
     required this.disabledEntryIds,
+    required this.themeMode,
   });
 
   final Set<String> enabledEntryIds;
@@ -12,6 +15,7 @@ class SettingsState {
   final bool katakanaEnabled;
   final bool yoonEnabled;
   final Set<String> disabledEntryIds;
+  final AppThemeMode themeMode;
 
   SettingsState copyWith({
     Set<String>? enabledEntryIds,
@@ -19,6 +23,7 @@ class SettingsState {
     bool? katakanaEnabled,
     bool? yoonEnabled,
     Set<String>? disabledEntryIds,
+    AppThemeMode? themeMode,
   }) {
     return SettingsState(
       enabledEntryIds: enabledEntryIds ?? this.enabledEntryIds,
@@ -26,6 +31,7 @@ class SettingsState {
       katakanaEnabled: katakanaEnabled ?? this.katakanaEnabled,
       yoonEnabled: yoonEnabled ?? this.yoonEnabled,
       disabledEntryIds: disabledEntryIds ?? this.disabledEntryIds,
+      themeMode: themeMode ?? this.themeMode,
     );
   }
 }
@@ -36,10 +42,12 @@ class SettingsSnapshot {
     required this.katakanaEnabled,
     required this.yoonEnabled,
     required this.disabledEntryIds,
+    required this.themeMode,
   });
 
   final bool hiraganaEnabled;
   final bool katakanaEnabled;
   final bool yoonEnabled;
   final Set<String> disabledEntryIds;
+  final AppThemeMode themeMode;
 }

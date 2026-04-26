@@ -13,6 +13,7 @@ class SharedPreferencesSettingsStorage implements SettingsStorage {
   static const _katakanaEnabledKey = 'settings.katakanaEnabled';
   static const _yoonEnabledKey = 'settings.yoonEnabled';
   static const _disabledEntryIdsKey = 'settings.disabledEntryIds';
+  static const _themeModeKey = 'settings.themeMode';
 
   @override
   Future<SettingsSnapshot?> read() async {
@@ -22,7 +23,8 @@ class SharedPreferencesSettingsStorage implements SettingsStorage {
         preferences.containsKey(_hiraganaEnabledKey) ||
         preferences.containsKey(_katakanaEnabledKey) ||
         preferences.containsKey(_yoonEnabledKey) ||
-        preferences.containsKey(_disabledEntryIdsKey);
+        preferences.containsKey(_disabledEntryIdsKey) ||
+        preferences.containsKey(_themeModeKey);
 
     if (!hasAnySetting) {
       return null;
@@ -34,6 +36,7 @@ class SharedPreferencesSettingsStorage implements SettingsStorage {
       yoonEnabled: preferences.getBool(_yoonEnabledKey) ?? false,
       disabledEntryIds:
           preferences.getStringList(_disabledEntryIdsKey)?.toSet() ?? {},
+      themeMode: _themeModeFromString(preferences.getString(_themeModeKey)),
     );
   }
 
@@ -46,6 +49,14 @@ class SharedPreferencesSettingsStorage implements SettingsStorage {
     await preferences.setStringList(
       _disabledEntryIdsKey,
       snapshot.disabledEntryIds.toList()..sort(),
+    );
+    await preferences.setString(_themeModeKey, snapshot.themeMode.name);
+  }
+
+  AppThemeMode _themeModeFromString(String? value) {
+    return AppThemeMode.values.firstWhere(
+      (mode) => mode.name == value,
+      orElse: () => AppThemeMode.system,
     );
   }
 }

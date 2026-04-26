@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/kana_entry.dart';
 import '../data/kana_repository.dart';
 import '../settings/settings_controller.dart';
+import '../settings/settings_state.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({
@@ -51,6 +52,32 @@ class SettingsPage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
                       children: [
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('Theme'),
+                          trailing: DropdownButton<AppThemeMode>(
+                            value: state.themeMode,
+                            onChanged: (value) {
+                              if (value != null) {
+                                settingsController.setThemeMode(value);
+                              }
+                            },
+                            items: const [
+                              DropdownMenuItem(
+                                value: AppThemeMode.system,
+                                child: Text('System'),
+                              ),
+                              DropdownMenuItem(
+                                value: AppThemeMode.light,
+                                child: Text('Light'),
+                              ),
+                              DropdownMenuItem(
+                                value: AppThemeMode.dark,
+                                child: Text('Dark'),
+                              ),
+                            ],
+                          ),
+                        ),
                         SwitchListTile(
                           contentPadding: EdgeInsets.zero,
                           title: const Text('Hiragana'),
