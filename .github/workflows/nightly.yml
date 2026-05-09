@@ -3,7 +3,7 @@ name: Nightly
 on:
   push:
     branches:
-      - develop
+      - main
   schedule:
     - cron: '17 2 * * *'
   workflow_dispatch:
@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -49,16 +51,17 @@ jobs:
 
       - name: Prepare asset
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk learnkana-nightly.apk
-          git tag -f nightly "$GITHUB_SHA"
-          git push origin nightly --force
+          NIGHTLY_TAG="nightly.$(date -u +%Y%m%d).$(git rev-parse --short=12 HEAD)"
+          echo "NIGHTLY_TAG=$NIGHTLY_TAG" >> "$GITHUB_ENV"
+          cp build/app/outputs/flutter-apk/app-release.apk "learnkana-${NIGHTLY_TAG}.apk"
+          git tag "$NIGHTLY_TAG" HEAD
+          git push origin "$NIGHTLY_TAG"
 
       - name: Publish nightly release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: nightly
-          name: Nightly
+          tag_name: ${{ env.NIGHTLY_TAG }}
+          name: ${{ env.NIGHTLY_TAG }}
           prerelease: true
-          overwrite_files: true
-          files: learnkana-nightly.apk
+          files: learnkana-${{ env.NIGHTLY_TAG }}.apk
           make_latest: false
