@@ -22,19 +22,33 @@ jobs:
         with:
           ref: main
 
+      - name: Check for existing nightly
+        id: nightly
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = schedule ] &&
+             git ls-remote --exit-code --tags origin "refs/tags/nightly.*.$(git rev-parse --short=12 HEAD)" >/dev/null; then
+            echo "build=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Set up Flutter
+        if: steps.nightly.outputs.build == 'true'
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
       - name: Install dependencies
+        if: steps.nightly.outputs.build == 'true'
         run: flutter pub get
 
       - name: Test
+        if: steps.nightly.outputs.build == 'true'
         run: flutter test
 
       - name: Verify signing secrets
+        if: steps.nightly.outputs.build == 'true'
         run: |
           test -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}"
           test -n "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"
@@ -42,6 +56,7 @@ jobs:
           test -n "${{ secrets.ANDROID_KEY_PASSWORD }}"
 
       - name: Build nightly APK
+        if: steps.nightly.outputs.build == 'true'
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -50,6 +65,7 @@ jobs:
         run: flutter build apk --release
 
       - name: Prepare asset
+        if: steps.nightly.outputs.build == 'true'
         run: |
           NIGHTLY_TAG="nightly.$(date -u +%Y%m%d).$(git rev-parse --short=12 HEAD)"
           echo "NIGHTLY_TAG=$NIGHTLY_TAG" >> "$GITHUB_ENV"
@@ -58,6 +74,7 @@ jobs:
           git push origin "$NIGHTLY_TAG"
 
       - name: Publish nightly release
+        if: steps.nightly.outputs.build == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.NIGHTLY_TAG }}
