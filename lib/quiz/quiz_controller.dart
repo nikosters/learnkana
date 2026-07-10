@@ -30,13 +30,13 @@ class QuizController extends ChangeNotifier {
     }
 
     final previous = _state?.currentEntry;
-    final current = previous == null || !enabledEntryIds.contains(previous.id)
-        ? _pickEntry(entries)
-        : previous;
+    final currentChanged =
+        previous == null || !enabledEntryIds.contains(previous.id);
+    final current = currentChanged ? _pickEntry(entries) : previous;
 
     _state = QuizState(
       currentEntry: current,
-      input: _state?.input ?? '',
+      input: currentChanged ? '' : _state?.input ?? '',
       enabledEntries: entries,
     );
     notifyListeners();

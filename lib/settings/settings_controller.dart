@@ -16,6 +16,7 @@ class SettingsController extends ChangeNotifier {
   final KanaRepository _repository;
   final SettingsStorage _storage;
   SettingsState _state;
+  Future<void> _pendingSave = Future.value();
 
   SettingsState get state => _state;
 
@@ -109,14 +110,18 @@ class SettingsController extends ChangeNotifier {
   }
 
   Future<void> _save() {
-    return _storage.write(
-      SettingsSnapshot(
-        hiraganaEnabled: _state.hiraganaEnabled,
-        katakanaEnabled: _state.katakanaEnabled,
-        yoonEnabled: _state.yoonEnabled,
-        disabledEntryIds: _state.disabledEntryIds,
-      ),
+    final snapshot = SettingsSnapshot(
+      hiraganaEnabled: _state.hiraganaEnabled,
+      katakanaEnabled: _state.katakanaEnabled,
+      yoonEnabled: _state.yoonEnabled,
+      disabledEntryIds: Set.unmodifiable(_state.disabledEntryIds),
     );
+    final save = _pendingSave.then(
+      (_) => _storage.write(snapshot),
+      onError: (_) => _storage.write(snapshot),
+    );
+    _pendingSave = save;
+    return save;
   }
 
   SettingsState _stateFromSnapshot(SettingsSnapshot snapshot) {

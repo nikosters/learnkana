@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:learnkana/data/kana_entry.dart';
 import 'package:learnkana/data/kana_repository.dart';
@@ -92,6 +94,30 @@ void main() {
     expect(controller.state.katakanaEnabled, isTrue);
     expect(controller.state.enabledEntryIds, isNotEmpty);
   });
+
+  test('serializes saves so the newest settings are persisted last', () async {
+    final storage = _ControlledSettingsStorage();
+    final controller = SettingsController(
+      repository: repository,
+      storage: storage,
+    );
+    await controller.load();
+
+    final firstChange = controller.setKatakanaEnabled(false);
+    await storage.firstWriteStarted.future;
+    final secondChange = controller.setYoonEnabled(true);
+
+    await Future<void>.delayed(Duration.zero);
+    expect(storage.startedWrites, 1);
+
+    storage.allowFirstWrite.complete();
+    await firstChange;
+    await secondChange;
+
+    expect(storage.startedWrites, 2);
+    expect(storage.snapshot?.katakanaEnabled, isFalse);
+    expect(storage.snapshot?.yoonEnabled, isTrue);
+  });
 }
 
 class _MemorySettingsStorage implements SettingsStorage {
@@ -104,6 +130,26 @@ class _MemorySettingsStorage implements SettingsStorage {
 
   @override
   Future<void> write(SettingsSnapshot snapshot) async {
+    this.snapshot = snapshot;
+  }
+}
+
+class _ControlledSettingsStorage implements SettingsStorage {
+  final firstWriteStarted = Completer<void>();
+  final allowFirstWrite = Completer<void>();
+  SettingsSnapshot? snapshot;
+  int startedWrites = 0;
+
+  @override
+  Future<SettingsSnapshot?> read() async => null;
+
+  @override
+  Future<void> write(SettingsSnapshot snapshot) async {
+    startedWrites++;
+    if (startedWrites == 1) {
+      firstWriteStarted.complete();
+      await allowFirstWrite.future;
+    }
     this.snapshot = snapshot;
   }
 }
