@@ -41,4 +41,22 @@ void main() {
     expect(controller.state.input, isEmpty);
     expect(controller.state.currentEntry.id, 'hiragana.basic.a');
   });
+
+  test('changing the current entry through settings clears stale input', () {
+    final controller = QuizController(
+      repository: repository,
+      random: Random(1),
+    );
+    controller.updateEntries({'hiragana.basic.a', 'hiragana.basic.i'});
+    final currentId = controller.state.currentEntry.id;
+    final remainingId = currentId == 'hiragana.basic.a'
+        ? 'hiragana.basic.i'
+        : 'hiragana.basic.a';
+    controller.updateInput('partial');
+
+    controller.updateEntries({remainingId});
+
+    expect(controller.state.currentEntry.id, remainingId);
+    expect(controller.state.input, isEmpty);
+  });
 }
